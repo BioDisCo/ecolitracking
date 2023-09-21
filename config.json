@@ -1,0 +1,15 @@
+{ 
+    "images_directory_path": "./images",
+    "first_image_threshold": 115,
+    "inpaint radius": 20,
+    "region_increase_for_blurring": 5,
+    "gaussian_blur_iterations": 2,
+    "subtraction_image_threshhold": 30,
+    "height_cutoff": 3,
+    "width_cutoff": 3,
+    "border_distance_cutoff": 5,
+    "IoA_threshold": 0.7,
+    "IoU_threshold": 0.15,
+    "sliding_window_search_height_increase": 12,
+    "sliding_window_search_width_increase": 12
+} 

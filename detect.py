@@ -22,7 +22,6 @@ template = None
 def create_template(labels_path, config):
     logging.debug("Starting to create template ...")
 
-    # TODO potentially change this to supervision
     # List that stores the bounding boxes
     first_frame = {
         "frame_nr": 0,
@@ -30,7 +29,7 @@ def create_template(labels_path, config):
     }
 
     # load the first image to obtain the dimensions
-    first_image_path = os.path.join(config['images_directory_path'], 'image000006.jpg')
+    first_image_path = os.path.join(config['images_directory_path'], 'image000000.png')
 
     # Load an image from a file
     first_image = cv2.imread(first_image_path)
@@ -49,7 +48,7 @@ def create_template(labels_path, config):
         mask = np.zeros_like(gray_image, dtype=np.uint8)    
     
     # load the labels from the first frame
-    first_image_labels_path = Path(os.path.join(labels_path, 'image000006.txt'))
+    first_image_labels_path = Path(os.path.join(labels_path, 'image000000.txt'))
 
     with open(first_image_labels_path, 'r') as file:
         # Read the contents of the file
@@ -78,6 +77,10 @@ def create_template(labels_path, config):
             # Update the original mask with the ROI mask
             mask[y:y + h, x:x + w] = temp_mask
     
+    # Debug
+    # cv2.imshow('mask', mask)
+    # cv2.waitKey(0)
+
     # Inpaint the cells in the first frame
     template = cv2.inpaint(first_image, mask, 20, cv2.INPAINT_NS)
 
@@ -100,8 +103,6 @@ def create_template(labels_path, config):
     template_path = os.path.join(application_directory, 'template.jpg')
     cv2.imwrite(template_path, template)
 
-    # TODO annotate first frame as well
-
     return first_frame, template
 
 
@@ -114,11 +115,25 @@ def detect(image, template, config):
     subtraction = cv2.subtract(template, image)
     subtraction = cv2.cvtColor(subtraction, cv2.COLOR_BGR2GRAY)
 
+    # Debug/Parameter Tuning
+    # cv2.imwrite('./subtraction.jpg', subtraction)
+    # cv2.imshow('subtraction', subtraction)
+    # cv2.waitKey(0)
+
 
     _, ecoli_noisy = cv2.threshold(subtraction, config['subtraction_image_threshhold'], 255, cv2.THRESH_BINARY)
 
+    # Debug/Parameter Tuning
+    # cv2.imshow('subtraction after threshold', ecoli_noisy)
+    # cv2.waitKey(0)
+
     # Apply median blur to the image
     ecoli = cv2.medianBlur(ecoli_noisy, 3)
+
+    # Debug/Parameter Tuning
+    # cv2.imwrite('./threshold.jpg', ecoli)
+    # cv2.imshow('threshold image', ecoli)
+    # cv2.waitKey(0)
 
     contours = cv2.findContours(ecoli, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     contours = contours[0] if len(contours) == 2 else contours[1]
@@ -129,15 +144,22 @@ def detect(image, template, config):
         if h <= config['height_cutoff'] or w <= config['width_cutoff']:
             continue
 
-        # TODO potentially add morph. opening if bounding box is large to better detect cell dup.
-
 
         # Increase the bounding box to make up for subtraction
         x -= 1
         y -= 1
         w += 2
         h += 2
-
+        
         boxes.append((x, y, w, h))
+
+        # Debug/Parameter Tuning
+        # cv2.rectangle(image, (x,y), (x + w, y + h), (0, 0, 255), 1)
     
+    # Debug/Parameter Tuning
+    # cv2.imwrite('./boxes.jpg', image)
+    # cv2.imshow('boxes', image)
+    # cv2.waitKey(0)
+
+
     return boxes

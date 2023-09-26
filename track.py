@@ -24,6 +24,10 @@ logging.basicConfig(
 # Create a logger
 logger = logging.getLogger('logger')
 
+# Needed for the tree
+in_frame = []
+time_offsets = []
+
 
 def init():
     logger.debug(f'Loading config ...')
@@ -69,14 +73,11 @@ def init():
     # Open labelImg
     subprocess.run(label_command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-    # Create dict for storing tree data
-    tree_data = []
 
-    tree_data_path = Path(os.path.join(application_directory, 'tree_data.json'))
 
     logging.debug("init finished")
 
-    return labels_path, config, tree_data
+    return labels_path, config
 
 def draw_detected_boxes(image, detected_boxes, previous_labels):
     old_boxes = [cell["box"] for cell in previous_labels['cells']]
@@ -229,6 +230,11 @@ def track(first_frame_labels, config, template):
 
     # Enumerate over all files in the directory
     for frame_nr, image_file in enumerate(os.listdir(config['images_directory_path'])):
+        # Just for demo
+        if frame_nr == 1499:
+            break
+
+
         # Skip the first frame since it was labeled manually
         if frame_nr == 0:
             # Previous image is needed for sliding window search
@@ -237,12 +243,12 @@ def track(first_frame_labels, config, template):
             max_id = max(previous_labels['cells'], key=lambda x: x["id"])["id"]
             annotate_frame(first_frame_labels, previous_image, previous_image.shape[0], previous_image.shape[1], image_file)
             
+            # TODO fix forest integration
             # Set up forest
             init_forest()
-            in_frame = []
-            time_offsets = []
 
-            for cell in first_frame_labels['cell']:
+
+            for cell in first_frame_labels['cells']:
                 enter_cell(cell['id'], 0, time_offsets, in_frame)
             
             continue
@@ -300,7 +306,8 @@ def track(first_frame_labels, config, template):
 
                 # Save cell_id for mapping loop
                 duplicated.append(cell['id'])
-
+                
+                # TODO fix forest integration
                 # Update forest
                 duplicate_cell(cell['id'], frame_to_time(frame_nr), max_id, in_frame)
 
@@ -327,7 +334,6 @@ def track(first_frame_labels, config, template):
                         "box": detected_boxes[cell_indices[1]]
                     }
                 ) 
-                pass
 
             # Check if the greatest overlap is significant enough
             if scores['IoU'].max() < config['IoU_threshold']:
@@ -389,6 +395,7 @@ def track(first_frame_labels, config, template):
                 # New cell gets new id
                 max_id += 1
 
+                # TODO fix forest integration    
                 # Update forest
                 enter_cell(max_id, frame_to_time(frame_nr), time_offsets, in_frame)
 
@@ -425,6 +432,7 @@ def track(first_frame_labels, config, template):
                 continue 
             # If box was close to border it probably left the window
 
+            # TODO fix forest integration
             # Update forest
             exit_cell(cell_id, frame_to_time(frame_nr), in_frame)
 
@@ -440,10 +448,7 @@ def track(first_frame_labels, config, template):
                     "parent": None,
                     "box": detected_boxes[row['t+1']]
                 }
-            )
-
-            enter_cell(cell_id, frame_to_time(frame_nr), time_offsets, in_frame) 
-
+            ) 
 
         # Annotate current frame
         annotate_frame(current_labels, image, image_height, image_width, image_file)
@@ -452,18 +457,25 @@ def track(first_frame_labels, config, template):
         previous_image = image.copy()
         previous_labels = current_labels.copy()
     
+    # TODO fix integration of forest
+    # Stop recording into forest
+    print(frame_nr)
     stop_forest(in_frame, frame_to_time(frame_nr))
-    prune_forest()
-    save_forest()
+    
+    # Prune forest
+    # prune_forest(config)
+
+    # Save forest
+    save_forest(time_offsets, config)
 
                 
         
 
 
 if __name__ == "__main__":
-    labels_path, config, tree_data = init()
+    labels_path, config = init()
     first_frame_labels, template = create_template(labels_path, config)
-    track(first_frame_labels, config, template, tree_data)
+    track(first_frame_labels, config, template)
 
-    # image = cv2.imread('images/image000006.jpg')
+    # image = cv2.imread('images/image000035.png')
     # detect(image, template, config)

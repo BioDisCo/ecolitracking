@@ -1,4 +1,3 @@
-template.jpg
 venv
 images
 labels
@@ -6,3 +5,7 @@ __pycache__
 annotated_images
 .vscode
 forest.xml
+202308100450290408282 - Trim.mp4
+202308100450290408282.mp4
+tracked.mp4
+forest.svg

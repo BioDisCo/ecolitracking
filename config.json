@@ -1,15 +1,20 @@
 { 
     "images_directory_path": "./images",
-    "first_image_threshold": 115,
+    "first_image_threshold": 185,
     "inpaint radius": 20,
     "region_increase_for_blurring": 5,
     "gaussian_blur_iterations": 2,
-    "subtraction_image_threshhold": 30,
-    "height_cutoff": 3,
-    "width_cutoff": 3,
+    "subtraction_image_threshhold": 25,
+    "height_cutoff": 2,
+    "width_cutoff": 2,
     "border_distance_cutoff": 5,
     "IoA_threshold": 0.7,
     "IoU_threshold": 0.15,
-    "sliding_window_search_height_increase": 12,
-    "sliding_window_search_width_increase": 12
+    "sliding_window_search_height_increase": 5,
+    "sliding_window_search_width_increase": 5,
+    "output_name": "tracked.mp4",
+    "forest_unit": "minutes",
+    "framerate": 32,
+    "forest_duration": 0.75,
+    "duration_cutoff": 0
 } 

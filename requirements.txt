@@ -4,3 +4,4 @@ labelImg>=1.8.6
 pandas>=2.0.3
 supervision>=0.14.0
 biopython>=1.81
+moviepy>=1.0.3

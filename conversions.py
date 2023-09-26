@@ -20,10 +20,10 @@ def yolo_to_opencv(x, y, w, h, image_height, image_width):
     return x, y, w, h
 
 
-# 30 fps
+# 32 fps
 def frame_to_time(frame_nr):
-    # get the time in hours
-    return frame_nr / (30 * 60 * 60)
+    # get the time in minztes
+    return frame_nr / (32 * 60)
 
 
 # def yolo_to_detections():
